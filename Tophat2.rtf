@@ -1,0 +1,55 @@
+{\rtf1\ansi\ansicpg936\cocoartf2638
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;\f1\froman\fcharset0 Times-Roman;}
+{\colortbl;\red255\green255\blue255;\red64\green11\blue217;\red0\green0\blue0;\red193\green101\blue28;
+\red46\green174\blue187;\red200\green20\blue201;\red180\green36\blue25;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c32309\c18666\c88229;\csgray\c0;\cssrgb\c80555\c47366\c13837;
+\cssrgb\c20199\c73241\c78251;\cssrgb\c83397\c23074\c82666;\cssrgb\c76411\c21697\c12527;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww12320\viewh8400\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs22 \cf2 \CocoaLigature0 #!/bin/bash\cf3 \
+\cf2 #SBATCH --job-name=Tophat2 # Job name\cf3 \
+\cf2 #SBATCH --mail-type=END,FAIL # Mail events (NONE, BEGIN, END, FAIL, ALL) \cf3 \
+\cf2 #SBATCH --mail-user=Yunjing.Wan@nyulangone.org # Where to send mail \cf3 \
+\cf2 #SBATCH --ntasks=4\cf3 \
+\cf2 #SBATCH --mem=32gb # Job memory request:x\cf3 \
+\cf2 #SBATCH --time=48:00:00 # Time limit hrs:min:sec\cf3 \
+\cf2 #SBATCH --output=/gpfs/scratch/yw6398/Project2/output/Tophat_%j.log\cf3 \
+\cf2 #SBATCH -p cpu_medium \cf3 \
+\
+module load trimgalore/0.5.0\
+module load python/cpu/2.7.15-ES\
+module load samtools/1.3\
+module load tophat/2.1.1\
+module load bowtie2/2.3.4.1\
+module load subread/1.6.3\
+module load igenome\
+\
+\cf4 cd\cf3  /gpfs/scratch/yw6398/Project2/\
+\
+\cf2 #array job\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf5 sample\cf3 =\cf6 $(awk \cf4 "\cf7 NR==\cf6 $\{SLURM_ARRAY_TASK_ID\}\cf7  \{print \cf6 \\$\cf7 1\}\cf4 "\cf6  /gpfs/scratch/yw6398/Project2/list.txt)\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf2 #trim raw fastq files \cf3 \
+\
+trim_galore \cf6 --paired\cf3  \cf6 --length\cf3  \cf7 30\cf3  \cf6 -o\cf3  /gpfs/scratch/yw6398/Project2/ /gpfs/scratch/yw6398/Project2/\cf6 $\{sample\}\cf3 _R1.fastq.gz /gpfs/scratch/yw6398/Project2/\cf6 $\{sample\}\cf3 _R2.fastq.gz\
+\
+\cf2 #Map using tophat2\cf3 \
+\
+tophat2 \cf6 --no-coverage-search\cf3  \cf6 -o\cf3  /gpfs/scratch/yw6398/Project2/output/\cf6 $\{sample\}\cf3  \cf6 -G\cf3  /gpfs/data/courses/bminga3004/\cf7 2022\cf3 /Practicum5/genes.gtf \cf6 -p\cf3  \cf7 8\cf3  \cf6 --library-type\cf3  fr-firststrand \cf6 $IGENOMES_ROOT\cf3 /Homo_sapiens/UCSC/hg38/Sequence/Bowtie2Index/genome /gpfs/scratch/yw6398/Project2/\cf6 $\{sample\}\cf3 _R1_val_1.fq.gz /gpfs/scratch/yw6398/Project2/\cf6 $\{sample\}\cf3 _R2_val_2.fq.gz\
+\
+samtools \cf4 sort\cf3  \cf6 -o\cf3  /gpfs/scratch/yw6398/Project2/output/\cf6 $\{sample\}\cf3 .sorted.bam /gpfs/scratch/yw6398/Project2/output/\cf6 $\{sample\}\cf3 /accepted_hits.bam\
+\
+samtools index /gpfs/scratch/yw6398/Project2/output/\cf6 $\{sample\}\cf3 .sorted.bam\
+\
+featureCounts \cf6 -s\cf3  \cf7 2\cf3  \cf6 -p\cf3  \cf6 -B\cf3  \cf6 -a\cf3  /gpfs/data/courses/bminga3004/\cf7 2022\cf3 /Practicum5/genes.gtf \cf6 -o\cf3  /gpfs/scratch/yw6398/Project2/output/\cf6 $\{sample\}\cf3 _featurecounts /gpfs/scratch/yw6398/Project2/output/\cf6 $\{sample\}\cf3 .sorted.bam\
+\
+\
+\
+\pard\pardeftab720\sl288\slmult1\partightenfactor0
+
+\f1\fs24 \cf8 \expnd0\expndtw0\kerning0
+\CocoaLigature1 \
+}
