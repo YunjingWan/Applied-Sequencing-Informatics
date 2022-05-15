@@ -1,0 +1,12 @@
+METHOD
+
+Raw RNA-Seq files were obtained as fastq.gz files, they were trimmed using Trim Galore on slurm (with parameter --length 30). 
+Trimmed data were further aligned to Homo sapiens hg38 reference genome by Tophat2, and output files were sorted by samtools. 
+Gene expression counts data were generated from sorted bam files by FeatureCounts. 
+Tasks were submitted as array jobs in bash script. (See Tophat2.rtf and list.rtf)
+
+Counts files were downloaded to local computer and then load into Rstudio for downstream analysis. 
+Counts matrices were merged by experiments (PRAMEhi/PRAMElo) respectively. (See matrixhi.R and matrixlow.R). 
+
+R package DESeq2 were used to perform differential analysis on both matrices. 
+Pathway analysis was performed using R package ClusterProfiler. (See DESeq_hi.R and DESeq_low.R)
